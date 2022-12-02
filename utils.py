@@ -57,8 +57,8 @@ def get_dataset(args):
         train_transform = transforms.Compose([
             transforms.RandomRotation(10),  # rotate +/- 10 degrees
             transforms.RandomHorizontalFlip(),  # reverse 50% of images
-            transforms.Resize(100),  # resize shortest side to 100 pixels
-            transforms.CenterCrop(100),  # crop longest side to 100 pixels at center
+            #transforms.Resize(100),  # resize shortest side to 100 pixels
+            #transforms.CenterCrop(100),  # crop longest side to 100 pixels at center
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406],
                                  [0.229, 0.224, 0.225])
@@ -108,16 +108,42 @@ def get_dataset(args):
     return train_dataset, test_dataset, user_groups
 
 
+def denormalization(w_avg, stds, means):
+    for idx, key in enumerate(w_avg.keys()):
+        w_avg[key] = w_avg[key] * stds[idx] + means[idx]
+    return w_avg
+
+
 def average_weights(w):
     """
     Returns the average of the weights.
     """
+    # w_avg = copy.deepcopy(w[0])
+    # for key in w_avg.keys():
+    #     for i in range(1, len(w)):
+    #         w_avg[key] += w[i][key]
+    #     w_avg[key] = torch.div(w_avg[key], len(w))
+
     w_avg = copy.deepcopy(w[0])
+    stds = []
+    means = []
     for key in w_avg.keys():
+        meanValue = torch.mean(w_avg[key])
+        stdValue = torch.std(w_avg[key],unbiased=False)
+        newW = (w_avg[key]-meanValue)/stdValue
+        w_avg[key]=newW
+        stds.append(stdValue)
+        means.append(meanValue)
+
         for i in range(1, len(w)):
-            w_avg[key] += w[i][key]
+            meanValue = torch.mean(w[i][key])
+            stdValue = torch.std(w[i][key],unbiased=False)
+            newW = (w[i][key]-meanValue)/stdValue
+            w_avg[key] += newW
         w_avg[key] = torch.div(w_avg[key], len(w))
-    return w_avg
+
+    w_avg_de = denormalization(w_avg, stds, means)
+    return w_avg_de
 
 
 def exp_details(args):

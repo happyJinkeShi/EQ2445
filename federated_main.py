@@ -15,7 +15,7 @@ from tensorboardX import SummaryWriter
 
 from options import args_parser
 from update import LocalUpdate, test_inference
-from models import MLP, CNNMnist, CNNFashion_Mnist, CNNCifar, VGGnet
+from models import MLP, CNNMnist, CNNFashion_Mnist, CNNCifar, VGGnet,VGG19
 from utils import get_dataset, average_weights, exp_details
 
 
@@ -46,8 +46,12 @@ if __name__ == '__main__':
             global_model = CNNFashion_Mnist(args=args)
         elif args.dataset == 'cifar':
             global_model = CNNCifar(args=args)
+        elif args.dataset == 'LEGO':
+            global_model = CNNCifar(args=args)
     elif args.model == 'vgg':
         global_model = VGGnet(args=args)
+    elif args.model == 'vgg19':
+        global_model = VGG19(args=args)
     elif args.model == 'mlp':
         # Multi-layer preceptron
         img_size = train_dataset[0][0].shape
@@ -135,30 +139,34 @@ if __name__ == '__main__':
 
     print('\n Total Run Time: {0:0.4f}'.format(time.time()-start_time))
 
-    # # PLOTTING(optional)
-    # import matplotlib
-    # import matplotlib.pyplot as plt
-    # matplotlib.use('Agg')
+    # PLOTTING(optional)
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    matplotlib.use('Agg')
 
-    # # Plot Loss curve
-    # plt.figure()
-    # plt.title('Training Loss vs Communication rounds')
-    # plt.plot(range(len(train_loss)), train_loss, color='r')
-    # plt.ylabel('Training loss')
-    # plt.xlabel('Communication Rounds')
-    # sub_fig_name = "save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_loss.png".\
-    #     format(args.dataset, args.model, args.epochs, args.frac,
-    #                args.iid, args.local_ep, args.local_bs)
-    # fig_name = os.path.join(os.getcwd(), sub_fig_name)
-    # plt.savefig(fig_name)
+    # Plot Loss curve
+    plt.figure()
+    plt.title('Training Loss vs Communication rounds')
+    plt.plot(range(len(train_loss)), train_loss, color='r')
+    plt.ylabel('Training loss')
+    plt.xlabel('Communication Rounds')
+    sub_fig_name = "save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_loss.png".\
+        format(args.dataset, args.model, args.epochs, args.frac,
+                   args.iid, args.local_ep, args.local_bs)
+    fig_name = os.path.join(os.getcwd(), sub_fig_name)
+    plt.savefig(fig_name)
 
-    # # Plot Average Accuracy vs Communication rounds
-    # plt.figure()
-    # plt.title('Average Accuracy vs Communication rounds')
-    # plt.plot(range(len(train_accuracy)), train_accuracy, color='k')
-    # plt.ylabel('Average Accuracy')
-    # plt.xlabel('Communication Rounds')
-    # sub_fig_name = 'save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_acc.png'.\
-    #     format(args.dataset, args.model, args.epochs, args.frac,
-    #            args.iid, args.local_ep, args.local_bs)
-    # fig_name = (fig_name)
+    # Plot Average Accuracy vs Communication rounds
+    plt.figure()
+    plt.title('Average Accuracy vs Communication rounds')
+    plt.plot(range(len(train_accuracy)), train_accuracy, color='k')
+    plt.ylabel('Average Accuracy')
+    plt.xlabel('Communication Rounds')
+    sub_fig_name = 'save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_acc.png'.\
+        format(args.dataset, args.model, args.epochs, args.frac,
+               args.iid, args.local_ep, args.local_bs)
+    fig_name = (fig_name)
+
+    save = pd.DataFrame({'loss':train_loss, 'accuracy':train_accuracy})
+    save.to_csv('save/nn_{}_{}_{}.csv'.format(args.dataset, args.model,  args.epochs))

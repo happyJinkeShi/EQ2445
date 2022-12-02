@@ -13,7 +13,7 @@ def args_parser():
                         help="number of rounds of training")
     parser.add_argument('--num_users', type=int, default=10,
                         help="number of users: K")
-    parser.add_argument('--frac', type=float, default=0.1,
+    parser.add_argument('--frac', type=float, default=1,
                         help='the fraction of clients: C')
     parser.add_argument('--local_ep', type=int, default=5,
                         help="the number of local epochs: E")
@@ -25,7 +25,7 @@ def args_parser():
                         help='SGD momentum (default: 0.5)')
 
     # model arguments
-    parser.add_argument('--model', type=str, default='vgg', help='model name')
+    parser.add_argument('--model', type=str, default='cnn', help='model name')
     parser.add_argument('--kernel_num', type=int, default=9,
                         help='number of each kind of kernel')
     parser.add_argument('--kernel_sizes', type=str, default='3,4,5',
